@@ -1,80 +1,42 @@
 import { Canvas } from "@react-three/fiber";
-import { useState } from "react";
-import { Text, Image, SimpleGrid, Group, useMantineTheme } from "@mantine/core";
-import { Dropzone, MIME_TYPES, FileWithPath } from "@mantine/dropzone";
-import { IconUpload, IconPhoto, IconX } from "@tabler/icons";
+import { useState, useMemo, useEffect } from "react";
+import { FileWithPath } from "@mantine/dropzone";
+import PainterInputs from "../modules/painter/PainterInputs";
+import { useImageSize } from "../modules/image/useImageSize";
+import Painter3D from "../modules/painter/Painter3D";
 
 /**
  * Main painter app
  */
 const Painter = () => {
-  const [files, setFiles] = useState<FileWithPath[]>([]);
-  const theme = useMantineTheme();
-  const previews = files.map((file, index) => {
-    const imageUrl = URL.createObjectURL(file);
-    console.log(imageUrl);
-    return (
-      <Image
-        key={index}
-        src={imageUrl}
-        // imageProps={{
-        //   onLoad: () => {
-        //     URL.revokeObjectURL(imageUrl);
-        //     console.log("Released");
-        //   },
-        // }}
-      />
-    );
-  });
+  const [imageFile, setImageFile] = useState<FileWithPath[]>([]);
+
+  // Convert image file to usable URL
+  const imageURL = useMemo(() => {
+    if (imageFile.length > 0) {
+      console.log(imageFile);
+      return URL.createObjectURL(imageFile[0]);
+    } else {
+      return null;
+    }
+  }, [imageFile]);
+
+  // Retrieve important data using URL
+  const [data, { loading, error }] = useImageSize(imageURL);
+
+  // Cleanup URL memory
+  useEffect(() => {
+    return () => {
+      URL.revokeObjectURL(imageURL);
+    };
+  }, [imageURL]);
 
   return (
     <>
-      <div>
-        <Dropzone accept={[MIME_TYPES.png, MIME_TYPES.jpeg]} onDrop={setFiles} multiple={false}>
-          <Group position="center" spacing="xl" style={{ minHeight: 220, pointerEvents: "none" }}>
-            <Dropzone.Accept>
-              <IconUpload
-                size={50}
-                stroke={1.5}
-                color={theme.colors[theme.primaryColor][theme.colorScheme === "dark" ? 4 : 6]}
-              />
-            </Dropzone.Accept>
-            <Dropzone.Reject>
-              <IconX
-                size={50}
-                stroke={1.5}
-                color={theme.colors.red[theme.colorScheme === "dark" ? 4 : 6]}
-              />
-            </Dropzone.Reject>
-            <Dropzone.Idle>
-              <IconPhoto size={50} stroke={1.5} />
-            </Dropzone.Idle>
-
-            <div>
-              <Text size="xl" inline>
-                Click to select file or drag image here
-              </Text>
-              <Text size="sm" color="dimmed" inline mt={7}>
-                Accepts JPEG or PNG
-              </Text>
-            </div>
-          </Group>
-        </Dropzone>
-
-        <SimpleGrid
-          cols={4}
-          breakpoints={[{ maxWidth: "sm", cols: 1 }]}
-          mt={previews.length > 0 ? "xl" : 0}
-        >
-          {previews}
-        </SimpleGrid>
-      </div>
       <Canvas>
-        <mesh>
-          <torusKnotGeometry />
-          <meshNormalMaterial />
-        </mesh>
+        {imageURL !== null ? <Painter3D imageURL={imageURL} imageData={data} /> : <></>}
       </Canvas>
+      <PainterInputs imageURL={imageURL} imageData={data} setImageFile={setImageFile} />
     </>
   );
 };
