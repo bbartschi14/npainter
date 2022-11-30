@@ -10,6 +10,7 @@ import Painter3D from "../modules/painter/Painter3D";
  */
 const Painter = () => {
   const [imageFile, setImageFile] = useState<FileWithPath[]>([]);
+  const [numStrokes, setNumStrokes] = useState(500);
 
   // Convert image file to usable URL
   const imageURL = useMemo(() => {
@@ -33,10 +34,20 @@ const Painter = () => {
 
   return (
     <>
-      <Canvas>
-        {imageURL !== null ? <Painter3D imageURL={imageURL} imageData={data} /> : <></>}
+      <Canvas orthographic={true} camera={{ zoom: 120 }}>
+        {imageURL !== null ? (
+          <Painter3D imageURL={imageURL} imageData={data} numStrokes={numStrokes} />
+        ) : (
+          <></>
+        )}
       </Canvas>
-      <PainterInputs imageURL={imageURL} imageData={data} setImageFile={setImageFile} />
+      <PainterInputs
+        imageURL={imageURL}
+        imageData={data}
+        setImageFile={setImageFile}
+        numStrokes={numStrokes}
+        setNumStrokes={setNumStrokes}
+      />
     </>
   );
 };

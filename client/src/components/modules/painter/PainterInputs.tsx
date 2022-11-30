@@ -1,6 +1,6 @@
 import { Image, Paper, Stack } from "@mantine/core";
 import { Dropzone, MIME_TYPES, FileWithPath } from "@mantine/dropzone";
-import { Text, Group, useMantineTheme } from "@mantine/core";
+import { Text, Group, useMantineTheme, NumberInput } from "@mantine/core";
 import { IconUpload, IconPhoto, IconX } from "@tabler/icons";
 import { Dimensions } from "../image/types";
 
@@ -8,6 +8,8 @@ type PainterInputsProps = {
   imageURL: string;
   imageData: Dimensions;
   setImageFile: (files: FileWithPath[]) => void;
+  numStrokes: number;
+  setNumStrokes: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const PainterInputs = (props: PainterInputsProps) => {
@@ -58,6 +60,11 @@ const PainterInputs = (props: PainterInputsProps) => {
         ) : (
           <></>
         )}
+        <NumberInput
+          label={"Brush Stroke Count"}
+          value={props.numStrokes}
+          onChange={(val) => props.setNumStrokes(val)}
+        />
       </Stack>
     </Paper>
   );
