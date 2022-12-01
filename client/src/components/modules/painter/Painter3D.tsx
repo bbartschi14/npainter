@@ -111,6 +111,11 @@ const Painter3D = (props: Painter3DProps) => {
     };
   }, [orbitRef]);
 
+  const sharpnessVisualRef = useRef(null);
+  useEffect(() => {
+    sharpnessVisualRef.current.material.needsUpdate = true;
+  }, [sharpnessTexture]);
+
   return (
     <>
       <OrbitControls enableRotate={false} ref={orbitRef} />
@@ -140,7 +145,8 @@ const Painter3D = (props: Painter3DProps) => {
       <Plane
         args={[worldSpaceDimensions.width, worldSpaceDimensions.height]}
         visible={props.displayBaseColor}
-        position={[10, 0, 0]}
+        ref={sharpnessVisualRef}
+        position={[0, -worldSpaceDimensions.height, 0]}
       >
         <meshBasicMaterial map={sharpnessTexture} />
       </Plane>

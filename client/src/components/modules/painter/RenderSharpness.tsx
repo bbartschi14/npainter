@@ -154,12 +154,7 @@ const RenderSharpness = (props: RenderSharpnessProps) => {
 
   return (
     <>
-      {createPortal(
-        <Plane args={[2, 2]} ref={planeRef}>
-          <meshBasicMaterial />
-        </Plane>,
-        scene.current
-      )}
+      {createPortal(<Plane args={[2, 2]} ref={planeRef}></Plane>, scene.current)}
       <blurMaterial ref={blurMaterialRef} />
       <luminanceMaterial ref={luminanceMaterialRef} />
       <highFreqMaterial ref={highFreqMaterialRef} />
