@@ -4,6 +4,8 @@ import { FileWithPath } from "@mantine/dropzone";
 import PainterInputs from "../modules/painter/PainterInputs";
 import { useImageSize } from "../modules/image/useImageSize";
 import Painter3D from "../modules/painter/Painter3D";
+import Info from "../modules/common/Info";
+import ControlsDisplay from "../modules/painter/ControlsDisplay";
 
 /**
  * Main painter app
@@ -137,6 +139,8 @@ const Painter = () => {
         tensorBlurRadius={tensorBlurRadius}
         setTensorBlurRadius={setTensorBlurRadius}
       />
+      <Info />
+      {false ? <></> : <ControlsDisplay />}
     </>
   );
 };
