@@ -7,6 +7,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrthographicCamera } from "three";
 import RenderSharpness from "./RenderSharpness";
+import RenderOrientation from "./RenderOrientation";
 
 type Painter3DProps = {
   imageURL: string;
@@ -14,20 +15,34 @@ type Painter3DProps = {
   randomSeed: number;
   numStrokes: number;
   strokeScale: number;
+  strokeScaleNoise: number;
+  strokeColorNoise: number;
+
   displayBaseColor: boolean;
+  displayDetailTexture: boolean;
+  displayOrientTexture: boolean;
 
   randomSeedSmall: number;
   numStrokesSmall: number;
   strokeScaleSmall: number;
+  strokeScaleNoiseSmall: number;
+  strokeColorNoiseSmall: number;
 
   unsharpBlurIters: number;
   unsharpBlurRadius: number;
   highFreqBlurIters: number;
+  highFreqBlurRadius: number;
+
+  lumiBlurIters: number;
+  lumiBlurRadius: number;
+  tensorBlurIters: number;
+  tensorBlurRadius: number;
 };
 
 const Painter3D = (props: Painter3DProps) => {
   const texture = useTexture(props.imageURL);
   const [sharpnessTexture, setSharpnessTexture] = useState<THREE.Texture>(null);
+  const [orientationTexture, setOrientationTexture] = useState<THREE.Texture>(null);
 
   const { gl, scene, camera } = useThree();
   const orbitRef = useRef();
@@ -116,6 +131,11 @@ const Painter3D = (props: Painter3DProps) => {
     sharpnessVisualRef.current.material.needsUpdate = true;
   }, [sharpnessTexture]);
 
+  const orientationVisualRef = useRef(null);
+  useEffect(() => {
+    orientationVisualRef.current.material.needsUpdate = true;
+  }, [orientationTexture]);
+
   return (
     <>
       <OrbitControls enableRotate={false} ref={orbitRef} />
@@ -125,15 +145,21 @@ const Painter3D = (props: Painter3DProps) => {
         randomSeed={props.randomSeed}
         particleCount={props.numStrokes}
         strokeScale={props.strokeScale}
+        scaleNoise={props.strokeScaleNoise}
+        colorNoise={props.strokeColorNoise}
         colorMap={texture}
+        orientationMap={orientationTexture}
       />
       <StrokeParticles
         imageWorldSize={worldSpaceDimensions}
         randomSeed={props.randomSeedSmall}
         particleCount={props.numStrokesSmall}
         strokeScale={props.strokeScaleSmall}
+        scaleNoise={props.strokeScaleNoiseSmall}
+        colorNoise={props.strokeColorNoiseSmall}
         colorMap={texture}
         importanceMap={sharpnessTexture}
+        orientationMap={orientationTexture}
       />
       <Plane
         args={[worldSpaceDimensions.width, worldSpaceDimensions.height]}
@@ -144,19 +170,37 @@ const Painter3D = (props: Painter3DProps) => {
 
       <Plane
         args={[worldSpaceDimensions.width, worldSpaceDimensions.height]}
-        visible={props.displayBaseColor}
+        visible={props.displayDetailTexture}
         ref={sharpnessVisualRef}
         position={[0, -worldSpaceDimensions.height, 0]}
       >
         <meshBasicMaterial map={sharpnessTexture} />
       </Plane>
 
+      <Plane
+        args={[worldSpaceDimensions.width, worldSpaceDimensions.height]}
+        visible={props.displayOrientTexture}
+        ref={orientationVisualRef}
+        position={[0, -worldSpaceDimensions.height * 2, 0]}
+      >
+        <meshBasicMaterial map={orientationTexture} />
+      </Plane>
+
       <RenderSharpness
         baseColor={texture}
         setSharpnessTexture={setSharpnessTexture}
         highFreqBlurIters={props.highFreqBlurIters}
+        highFreqBlurRadius={props.highFreqBlurRadius}
         unsharpBlurIters={props.unsharpBlurIters}
         unsharpBlurRadius={props.unsharpBlurRadius}
+      />
+      <RenderOrientation
+        baseColor={texture}
+        setOrientationTexture={setOrientationTexture}
+        lumiBlurIters={props.lumiBlurIters}
+        lumiBlurRadius={props.lumiBlurRadius}
+        tensorBlurIters={props.tensorBlurIters}
+        tensorBlurRadius={props.tensorBlurRadius}
       />
     </>
   );

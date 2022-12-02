@@ -21,32 +21,58 @@ type PainterInputsProps = {
   imageURL: string;
   imageData: Dimensions;
   setImageFile: (files: FileWithPath[]) => void;
+
   numStrokes: number;
   setNumStrokes: React.Dispatch<React.SetStateAction<number>>;
   strokeScale: number;
   setStrokeScale: React.Dispatch<React.SetStateAction<number>>;
+  strokeScaleNoise: number;
+  setStrokeScaleNoise: React.Dispatch<React.SetStateAction<number>>;
+  strokeColorNoise: number;
+  setStrokeColorNoise: React.Dispatch<React.SetStateAction<number>>;
   randomSeed: number;
   setRandomSeed: React.Dispatch<React.SetStateAction<number>>;
+
   displayBaseColor: boolean;
   setDisplayBaseColor: React.Dispatch<React.SetStateAction<boolean>>;
+  displayDetailTexture: boolean;
+  setDisplayDetailTexture: React.Dispatch<React.SetStateAction<boolean>>;
+  displayOrientTexture: boolean;
+  setDisplayOrientTexture: React.Dispatch<React.SetStateAction<boolean>>;
 
   numStrokesSmall: number;
   setNumStrokesSmall: React.Dispatch<React.SetStateAction<number>>;
   strokeScaleSmall: number;
   setStrokeScaleSmall: React.Dispatch<React.SetStateAction<number>>;
+  strokeScaleNoiseSmall: number;
+  setStrokeScaleNoiseSmall: React.Dispatch<React.SetStateAction<number>>;
+  strokeColorNoiseSmall: number;
+  setStrokeColorNoiseSmall: React.Dispatch<React.SetStateAction<number>>;
   randomSeedSmall: number;
   setRandomSeedSmall: React.Dispatch<React.SetStateAction<number>>;
 
   unsharpBlurIters: number;
   setUnsharpBlurIters: React.Dispatch<React.SetStateAction<number>>;
-  highFreqBlurIters: number;
-  setHighFreqBlurIters: React.Dispatch<React.SetStateAction<number>>;
-
   unsharpBlurRadius: number;
   setUnsharpBlurRadius: React.Dispatch<React.SetStateAction<number>>;
+
+  highFreqBlurIters: number;
+  setHighFreqBlurIters: React.Dispatch<React.SetStateAction<number>>;
+  highFreqBlurRadius: number;
+  setHighFreqBlurRadius: React.Dispatch<React.SetStateAction<number>>;
+
+  lumiBlurIters: number;
+  setLumiBlurIters: React.Dispatch<React.SetStateAction<number>>;
+  lumiBlurRadius: number;
+  setLumiBlurRadius: React.Dispatch<React.SetStateAction<number>>;
+
+  tensorBlurIters: number;
+  setTensorBlurIters: React.Dispatch<React.SetStateAction<number>>;
+  tensorBlurRadius: number;
+  setTensorBlurRadius: React.Dispatch<React.SetStateAction<number>>;
 };
 
-type PainterInputsTabs = "base" | "detail";
+type PainterInputsTabs = "base" | "detail" | "orient";
 const PainterInputs = (props: PainterInputsProps) => {
   const theme = useMantineTheme();
   const [tab, setTab] = useState<PainterInputsTabs | string>("base");
@@ -108,119 +134,225 @@ const PainterInputs = (props: PainterInputsProps) => {
         ) : (
           <></>
         )}
-        <Checkbox
-          label={"Display Image in Viewport"}
-          checked={props.displayBaseColor}
-          onChange={(event) => props.setDisplayBaseColor(event.currentTarget.checked)}
-        />
-
-        <SegmentedControl
-          value={tab}
-          onChange={setTab}
-          data={[
-            { label: "Base", value: "base" },
-            { label: "Detail", value: "detail" },
-          ]}
-        />
-
-        <Tabs value={tab}>
-          <Tabs.Panel value="base">
-            <Stack>
-              <SliderInput
-                value={props.randomSeed}
-                setValue={props.setRandomSeed}
-                label={"Random Seed"}
-                min={0}
-                max={100}
-                step={1}
-                clamp={false}
-              />
-              <SliderInput
-                value={props.numStrokes}
-                setValue={props.setNumStrokes}
-                label={"Brush Stroke Count"}
-                min={0}
-                max={40000}
-                step={1}
-                clamp={false}
-              />
-              <SliderInput
-                value={props.strokeScale}
-                setValue={props.setStrokeScale}
-                label={"Stroke Scale"}
-                min={0}
-                max={50}
-                step={0.1}
-                clamp={false}
-              />
-            </Stack>
-          </Tabs.Panel>
-          <Tabs.Panel value="detail">
-            <Stack>
-              <SliderInput
-                value={props.randomSeedSmall}
-                setValue={props.setRandomSeedSmall}
-                label={"Detail Random Seed"}
-                min={0}
-                max={100}
-                step={1}
-                clamp={false}
-              />
-              <SliderInput
-                value={props.numStrokesSmall}
-                setValue={props.setNumStrokesSmall}
-                label={"Detail Brush Stroke Count"}
-                min={0}
-                max={40000}
-                step={1}
-                clamp={false}
-              />
-              <SliderInput
-                value={props.strokeScaleSmall}
-                setValue={props.setStrokeScaleSmall}
-                label={"Detail Stroke Scale"}
-                min={0}
-                max={50}
-                step={0.1}
-                clamp={false}
-              />
-              <SliderInput
-                value={props.unsharpBlurIters}
-                setValue={props.setUnsharpBlurIters}
-                label={"Unsharp Blur Iterations"}
-                min={0}
-                max={20}
-                step={1}
-                clamp={true}
-              />
-              <SliderInput
-                value={props.unsharpBlurRadius}
-                setValue={props.setUnsharpBlurRadius}
-                label={"Unsharp Blur Radius"}
-                min={0.1}
-                max={20}
-                step={0.1}
-                clamp={false}
-              />
-              <SliderInput
-                value={props.highFreqBlurIters}
-                setValue={props.setHighFreqBlurIters}
-                label={"High Freq Blur Iterations"}
-                min={0}
-                max={20}
-                step={1}
-                clamp={true}
-              />
-            </Stack>
-          </Tabs.Panel>
-        </Tabs>
-
         <Button
           disabled={props.imageData === null || props.imageURL === null}
           onClick={onSaveButtonClicked}
         >
           {"Save"}
         </Button>
+        {props.imageData === null || props.imageURL === null ? (
+          <></>
+        ) : (
+          <>
+            <SegmentedControl
+              value={tab}
+              onChange={setTab}
+              data={[
+                { label: "Base", value: "base" },
+                { label: "Detail", value: "detail" },
+                { label: "Orient", value: "orient" },
+              ]}
+            />
+
+            <Tabs value={tab}>
+              <Tabs.Panel value="base">
+                <Stack>
+                  <SliderInput
+                    value={props.randomSeed}
+                    setValue={props.setRandomSeed}
+                    label={"Random Seed"}
+                    min={0}
+                    max={100}
+                    step={1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.numStrokes}
+                    setValue={props.setNumStrokes}
+                    label={"Brush Stroke Count"}
+                    min={0}
+                    max={40000}
+                    step={1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.strokeScale}
+                    setValue={props.setStrokeScale}
+                    label={"Stroke Scale"}
+                    min={0}
+                    max={50}
+                    step={0.1}
+                    precision={1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.strokeScaleNoise}
+                    setValue={props.setStrokeScaleNoise}
+                    label={"Stroke Scale Noise"}
+                    min={0}
+                    max={20}
+                    step={0.01}
+                    precision={2}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.strokeColorNoise}
+                    setValue={props.setStrokeColorNoise}
+                    label={"Stroke Color Noise"}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    precision={2}
+                    clamp={false}
+                  />
+                  <Checkbox
+                    label={"Display Image Texture in Viewport"}
+                    checked={props.displayBaseColor}
+                    onChange={(event) => props.setDisplayBaseColor(event.currentTarget.checked)}
+                  />
+                </Stack>
+              </Tabs.Panel>
+              <Tabs.Panel value="detail">
+                <Stack>
+                  <SliderInput
+                    value={props.randomSeedSmall}
+                    setValue={props.setRandomSeedSmall}
+                    label={"Detail Random Seed"}
+                    min={0}
+                    max={100}
+                    step={1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.numStrokesSmall}
+                    setValue={props.setNumStrokesSmall}
+                    label={"Detail Brush Stroke Count"}
+                    min={0}
+                    max={40000}
+                    step={1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.strokeScaleSmall}
+                    setValue={props.setStrokeScaleSmall}
+                    label={"Detail Stroke Scale"}
+                    min={0}
+                    max={50}
+                    step={0.1}
+                    precision={1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.strokeScaleNoiseSmall}
+                    setValue={props.setStrokeScaleNoiseSmall}
+                    label={"Detail Stroke Scale Noise"}
+                    min={0}
+                    max={20}
+                    step={0.01}
+                    precision={2}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.strokeColorNoiseSmall}
+                    setValue={props.setStrokeColorNoiseSmall}
+                    label={"Detail Stroke Color Noise"}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    precision={2}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.unsharpBlurIters}
+                    setValue={props.setUnsharpBlurIters}
+                    label={"Unsharp Blur Iterations"}
+                    min={0}
+                    max={20}
+                    step={1}
+                    clamp={true}
+                  />
+                  <SliderInput
+                    value={props.unsharpBlurRadius}
+                    setValue={props.setUnsharpBlurRadius}
+                    label={"Unsharp Blur Radius"}
+                    min={0.1}
+                    max={20}
+                    step={0.1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.highFreqBlurIters}
+                    setValue={props.setHighFreqBlurIters}
+                    label={"High Freq Blur Iterations"}
+                    min={0}
+                    max={20}
+                    step={1}
+                    clamp={true}
+                  />
+                  <SliderInput
+                    value={props.highFreqBlurRadius}
+                    setValue={props.setHighFreqBlurRadius}
+                    label={"High Freq Blur Radius"}
+                    min={0.1}
+                    max={20}
+                    step={0.1}
+                    clamp={false}
+                  />
+                  <Checkbox
+                    label={"Display Detail Texture in Viewport"}
+                    checked={props.displayDetailTexture}
+                    onChange={(event) => props.setDisplayDetailTexture(event.currentTarget.checked)}
+                  />
+                </Stack>
+              </Tabs.Panel>
+              <Tabs.Panel value="orient">
+                <Stack>
+                  <SliderInput
+                    value={props.lumiBlurIters}
+                    setValue={props.setLumiBlurIters}
+                    label={"Lumi Blur Iterations"}
+                    min={0}
+                    max={20}
+                    step={1}
+                    clamp={true}
+                  />
+                  <SliderInput
+                    value={props.lumiBlurRadius}
+                    setValue={props.setLumiBlurRadius}
+                    label={"Lumi Blur Radius"}
+                    min={0.1}
+                    max={20}
+                    step={0.1}
+                    clamp={false}
+                  />
+                  <SliderInput
+                    value={props.tensorBlurIters}
+                    setValue={props.setTensorBlurIters}
+                    label={"Tensor Blur Iterations"}
+                    min={0}
+                    max={20}
+                    step={1}
+                    clamp={true}
+                  />
+                  <SliderInput
+                    value={props.tensorBlurRadius}
+                    setValue={props.setTensorBlurRadius}
+                    label={"Tensor Blur Radius"}
+                    min={0.1}
+                    max={20}
+                    step={0.1}
+                    clamp={false}
+                  />
+                  <Checkbox
+                    label={"Display Orient Texture in Viewport"}
+                    checked={props.displayOrientTexture}
+                    onChange={(event) => props.setDisplayOrientTexture(event.currentTarget.checked)}
+                  />
+                </Stack>
+              </Tabs.Panel>
+            </Tabs>
+          </>
+        )}
       </Stack>
     </Paper>
   );

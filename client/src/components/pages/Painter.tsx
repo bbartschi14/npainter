@@ -13,15 +13,29 @@ const Painter = () => {
   const [randomSeed, setRandomSeed] = useState(32);
   const [numStrokes, setNumStrokes] = useState(2500);
   const [strokeScale, setStrokeScale] = useState(5);
+  const [strokeScaleNoise, setStrokeScaleNoise] = useState(0.1);
+  const [strokeColorNoise, setStrokeColorNoise] = useState(0.1);
 
   const [randomSeedSmall, setRandomSeedSmall] = useState(32);
   const [numStrokesSmall, setNumStrokesSmall] = useState(2500);
   const [strokeScaleSmall, setStrokeScaleSmall] = useState(2.5);
+  const [strokeScaleNoiseSmall, setStrokeScaleNoiseSmall] = useState(0.1);
+  const [strokeColorNoiseSmall, setStrokeColorNoiseSmall] = useState(0.1);
+
   const [unsharpBlurIters, setUnsharpBlurIters] = useState(10);
   const [unsharpBlurRadius, setUnsharpBlurRadius] = useState(10);
   const [highFreqBlurIters, setHighFreqBlurIters] = useState(6);
+  const [highFreqBlurRadius, setHighFreqBlurRadius] = useState(6);
+
+  const [lumiBlurIters, setLumiBlurIters] = useState(6);
+  const [lumiBlurRadius, setLumiBlurRadius] = useState(2);
+
+  const [tensorBlurIters, setTensorBlurIters] = useState(5);
+  const [tensorBlurRadius, setTensorBlurRadius] = useState(2);
 
   const [displayBaseColor, setDisplayBaseColor] = useState(true);
+  const [displayDetailTexture, setDisplayDetailTexture] = useState(true);
+  const [displayOrientTexture, setDisplayOrientTexture] = useState(true);
 
   // Convert image file to usable URL
   const imageURL = useMemo(() => {
@@ -53,13 +67,24 @@ const Painter = () => {
             randomSeed={randomSeed}
             numStrokes={numStrokes}
             strokeScale={strokeScale}
+            strokeScaleNoise={strokeScaleNoise}
+            strokeColorNoise={strokeColorNoise}
             displayBaseColor={displayBaseColor}
+            displayDetailTexture={displayDetailTexture}
+            displayOrientTexture={displayOrientTexture}
             randomSeedSmall={randomSeedSmall}
             numStrokesSmall={numStrokesSmall}
             strokeScaleSmall={strokeScaleSmall}
+            strokeScaleNoiseSmall={strokeScaleNoiseSmall}
+            strokeColorNoiseSmall={strokeColorNoiseSmall}
             unsharpBlurIters={unsharpBlurIters}
             unsharpBlurRadius={unsharpBlurRadius}
             highFreqBlurIters={highFreqBlurIters}
+            highFreqBlurRadius={highFreqBlurRadius}
+            lumiBlurIters={lumiBlurIters}
+            lumiBlurRadius={lumiBlurRadius}
+            tensorBlurIters={tensorBlurIters}
+            tensorBlurRadius={tensorBlurRadius}
           />
         ) : (
           <></>
@@ -75,20 +100,42 @@ const Painter = () => {
         setNumStrokes={setNumStrokes}
         strokeScale={strokeScale}
         setStrokeScale={setStrokeScale}
+        strokeScaleNoise={strokeScaleNoise}
+        setStrokeScaleNoise={setStrokeScaleNoise}
+        strokeColorNoise={strokeColorNoise}
+        setStrokeColorNoise={setStrokeColorNoise}
         displayBaseColor={displayBaseColor}
         setDisplayBaseColor={setDisplayBaseColor}
+        displayDetailTexture={displayDetailTexture}
+        setDisplayDetailTexture={setDisplayDetailTexture}
+        displayOrientTexture={displayOrientTexture}
+        setDisplayOrientTexture={setDisplayOrientTexture}
         randomSeedSmall={randomSeedSmall}
         setRandomSeedSmall={setRandomSeedSmall}
         numStrokesSmall={numStrokesSmall}
         setNumStrokesSmall={setNumStrokesSmall}
         strokeScaleSmall={strokeScaleSmall}
         setStrokeScaleSmall={setStrokeScaleSmall}
+        strokeScaleNoiseSmall={strokeScaleNoiseSmall}
+        setStrokeScaleNoiseSmall={setStrokeScaleNoiseSmall}
+        strokeColorNoiseSmall={strokeColorNoiseSmall}
+        setStrokeColorNoiseSmall={setStrokeColorNoiseSmall}
         unsharpBlurIters={unsharpBlurIters}
         setUnsharpBlurIters={setUnsharpBlurIters}
         highFreqBlurIters={highFreqBlurIters}
         setHighFreqBlurIters={setHighFreqBlurIters}
+        highFreqBlurRadius={highFreqBlurRadius}
+        setHighFreqBlurRadius={setHighFreqBlurRadius}
         unsharpBlurRadius={unsharpBlurRadius}
         setUnsharpBlurRadius={setUnsharpBlurRadius}
+        lumiBlurIters={lumiBlurIters}
+        setLumiBlurIters={setLumiBlurIters}
+        lumiBlurRadius={lumiBlurRadius}
+        setLumiBlurRadius={setLumiBlurRadius}
+        tensorBlurIters={tensorBlurIters}
+        setTensorBlurIters={setTensorBlurIters}
+        tensorBlurRadius={tensorBlurRadius}
+        setTensorBlurRadius={setTensorBlurRadius}
       />
     </>
   );

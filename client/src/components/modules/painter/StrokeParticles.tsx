@@ -12,7 +12,10 @@ type StrokeParticlesProps = {
   randomSeed: number;
   particleCount: number;
   strokeScale: number;
+  scaleNoise: number;
+  colorNoise: number;
   colorMap: THREE.Texture;
+  orientationMap: THREE.Texture;
   importanceMap?: THREE.Texture;
 };
 
@@ -28,6 +31,16 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
   useEffect(() => {
     colorMapRef.current.value = props.colorMap;
   }, [props.colorMap]);
+
+  const orientationMapRef = useRef({ value: null });
+  useEffect(() => {
+    orientationMapRef.current.value = props.orientationMap;
+  }, [props.orientationMap]);
+
+  const colorNoiseRef = useRef({ value: 0.0 });
+  useEffect(() => {
+    colorNoiseRef.current.value = props.colorNoise;
+  }, [props.colorNoise]);
 
   const useImportanceRef = useRef({ value: false });
   const importanceMapRef = useRef({ value: null });
@@ -48,27 +61,49 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
       `#include <common>
         uniform sampler2D uColorMap;
         uniform sampler2D uImportanceMap;
+        uniform sampler2D uOrientationMap;
         uniform bool uUseImportance;
+        uniform float uColorNoise;
         attribute vec2 colorUv;
-        varying vec2 vColorUv;`
+        attribute float randomFactor;
+        varying vec2 vColorUv;
+        varying float vRandomFactor;`
     );
     shader.vertexShader = shader.vertexShader.replace(
       "#include <begin_vertex>",
       `#include <begin_vertex>
-        vColorUv = colorUv;`
+      #define M_PI 3.1415926535897932384626433832795
+
+      vColorUv = colorUv;
+      vRandomFactor = randomFactor;
+      vec4 orientationSample = texture2D(uOrientationMap,vColorUv);
+      float s = sin(orientationSample.x * M_PI);
+      float c = cos(orientationSample.x * M_PI);
+      vec2 position2D = vec2(transformed.x, transformed.y);
+      mat2 rotation2D = mat2(c, -s, s, c);
+      vec2 rotated = rotation2D * position2D;
+
+      transformed.x = rotated.x;
+      transformed.y = rotated.y;
+      `
     );
 
     shader.uniforms.uColorMap = colorMapRef.current;
     shader.uniforms.uImportanceMap = importanceMapRef.current;
+    shader.uniforms.uOrientationMap = orientationMapRef.current;
     shader.uniforms.uUseImportance = useImportanceRef.current;
+    shader.uniforms.uColorNoise = colorNoiseRef.current;
 
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <common>",
       `#include <common>
         uniform sampler2D uColorMap;
         uniform sampler2D uImportanceMap;
+        uniform sampler2D uOrientationMap;
         uniform bool uUseImportance;
-        varying vec2 vColorUv;`
+        uniform float uColorNoise;
+        varying vec2 vColorUv;
+        varying float vRandomFactor;`
     );
 
     shader.fragmentShader = shader.fragmentShader.replace(
@@ -86,23 +121,35 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
             alpha = 0.0;
           }
         }
-        diffuseColor *= vec4(sampledDiffuseColor.x,sampledDiffuseColor.y,sampledDiffuseColor.z,alpha);;
+
+        float noiseStrength = uColorNoise;
+        float offset = ((vRandomFactor * noiseStrength) - (noiseStrength / 2.0)) * 2.0;
+        vec3 color = vec3(sampledDiffuseColor.x,sampledDiffuseColor.y,sampledDiffuseColor.z) * (1.0 + offset);
+        diffuseColor *= vec4(color,alpha);;
         `
     );
   };
 
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
-  const colorUVArray = useMemo(() => {
+  const [colorUVArray, randomArray] = useMemo(() => {
     setLoading(true);
     const getSeededRandom = rng(props.randomSeed.toString());
 
-    return Float32Array.from(
-      Array.from(
-        { length: Math.max(props.particleCount, 0) * 2 },
-        (value, index) => getSeededRandom() + 0.5
-      ) // Remap [0,1]
-    );
+    return [
+      Float32Array.from(
+        Array.from(
+          { length: Math.max(props.particleCount, 0) * 2 },
+          (value, index) => getSeededRandom() + 0.5 // Remap [0,1]
+        )
+      ),
+      Float32Array.from(
+        Array.from(
+          { length: Math.max(props.particleCount, 0) },
+          (value, index) => getSeededRandom() + 0.5 // Remap [0,1]
+        )
+      ),
+    ];
   }, [
     props.randomSeed,
     props.particleCount,
@@ -118,14 +165,16 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
           (colorUVArray[i * 2 + 1] - 0.5) * props.imageWorldSize.height,
           distanceTowardsCamera
         );
-        tempObject.scale.setScalar(props.strokeScale);
+        tempObject.scale.setScalar(
+          props.strokeScale + props.scaleNoise * ((randomArray[i] - 0.5) * 2.0)
+        );
         tempObject.updateMatrix();
         meshRef.current.setMatrixAt(i, tempObject.matrix);
       }
       meshRef.current.instanceMatrix.needsUpdate = true;
       setLoading(false);
     }
-  }, [meshRef, colorUVArray, props.strokeScale]);
+  }, [meshRef, colorUVArray, props.strokeScale, props.scaleNoise]);
 
   return (
     <>
@@ -136,6 +185,7 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
       >
         <planeGeometry args={[0.1, 0.1]}>
           <instancedBufferAttribute attach="attributes-colorUv" args={[colorUVArray, 2]} />
+          <instancedBufferAttribute attach="attributes-randomFactor" args={[randomArray, 1]} />
         </planeGeometry>
         {/* With depthTest off, we don't have to worry about z-fighting. Will have to consider render order */}
         <meshBasicMaterial

@@ -3,27 +3,29 @@ import { createPortal, extend, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Plane } from "@react-three/drei";
 import { BlurMaterial } from "./shaders/BlurMaterial";
+import { GradientMaterial } from "./shaders/GradientMaterial";
 import { LuminanceMaterial } from "./shaders/LuminanceMaterial";
-import { HighFreqMaterial } from "./shaders/HighFreqMaterial";
+import { EigenMaterial } from "./shaders/EigenMaterial";
 import { Dimensions } from "../image/types";
 
+extend({ GradientMaterial });
 extend({ LuminanceMaterial });
 extend({ BlurMaterial });
-extend({ HighFreqMaterial });
+extend({ EigenMaterial });
 
 const remap = (value, sourceMin, sourceMax, destMin = 0, destMax = 1) =>
   destMin + ((value - sourceMin) / (sourceMax - sourceMin)) * (destMax - destMin);
 
-type RenderSharpnessProps = {
+type RenderOrientationProps = {
   baseColor: THREE.Texture;
-  setSharpnessTexture: React.Dispatch<React.SetStateAction<THREE.Texture>>;
-  unsharpBlurIters: number;
-  unsharpBlurRadius: number;
-  highFreqBlurIters: number;
-  highFreqBlurRadius: number;
+  setOrientationTexture: React.Dispatch<React.SetStateAction<THREE.Texture>>;
+  lumiBlurIters: number;
+  lumiBlurRadius: number;
+  tensorBlurIters: number;
+  tensorBlurRadius: number;
 };
 
-const RenderSharpness = (props: RenderSharpnessProps) => {
+const RenderOrientation = (props: RenderOrientationProps) => {
   const { gl } = useThree();
   const scene = useRef(new THREE.Scene());
   const camera = useRef(new THREE.PerspectiveCamera());
@@ -43,26 +45,22 @@ const RenderSharpness = (props: RenderSharpnessProps) => {
       samples: 8,
     })
   );
-  const rt2 = useRef(
-    new THREE.WebGLRenderTarget(128, 128, {
-      format: THREE.RGBAFormat,
-      stencilBuffer: false,
-      samples: 8,
-    })
-  );
 
-  const blurMaterialRef = useRef(null);
   const luminanceMaterialRef = useRef(null);
-  const highFreqMaterialRef = useRef(null);
+  const blurMaterialRef = useRef(null);
+  const gradientMaterialRef = useRef(null);
+  const eigenMaterialRef = useRef(null);
 
   useEffect(() => {
     if (
       planeRef.current === null ||
-      blurMaterialRef.current === null ||
       luminanceMaterialRef.current === null ||
-      highFreqMaterialRef.current === null
+      blurMaterialRef.current === null ||
+      gradientMaterialRef.current === null ||
+      eigenMaterialRef.current === null
     )
       return;
+
     // Update all render target sizes
     if (
       rt0.current.width !== props.baseColor.image.width ||
@@ -70,25 +68,26 @@ const RenderSharpness = (props: RenderSharpnessProps) => {
     ) {
       rt0.current.setSize(props.baseColor.image.width, props.baseColor.image.height);
       rt1.current.setSize(props.baseColor.image.width, props.baseColor.image.height);
-      rt2.current.setSize(props.baseColor.image.width, props.baseColor.image.height);
     }
-    scene.current.background = new THREE.Color("green");
-    // RENDER LUMINANCE
-    planeRef.current.material = luminanceMaterialRef.current;
-    luminanceMaterialRef.current.uBaseColor = props.baseColor;
-    // console.log(luminanceMaterialRef.current);
-    gl.setRenderTarget(rt2.current);
-    gl.render(scene.current, camera.current);
-    gl.setRenderTarget(rt0.current);
-    gl.render(scene.current, camera.current);
 
-    let writeTexture = rt1;
-    let readTexture = rt0;
+    let writeTexture = rt0;
+    let readTexture = rt1;
     let swap = null;
 
-    // RENDER GAUSSIAN BLUR #1
-    const renderGaussian = true;
-    if (renderGaussian) {
+    // RENDER LUMI
+    planeRef.current.material = luminanceMaterialRef.current;
+    luminanceMaterialRef.current.uBaseColor = props.baseColor;
+
+    gl.setRenderTarget(writeTexture.current);
+    gl.render(scene.current, camera.current);
+
+    swap = writeTexture;
+    writeTexture = readTexture;
+    readTexture = swap;
+
+    // BLUR LUMI
+    const blurLuminance = true;
+    if (blurLuminance) {
       planeRef.current.material = blurMaterialRef.current;
       blurMaterialRef.current.uResolution.set(
         props.baseColor.image.width,
@@ -96,10 +95,52 @@ const RenderSharpness = (props: RenderSharpnessProps) => {
       );
       blurMaterialRef.current.uFlip = true;
 
-      const iterations = props.unsharpBlurIters;
+      const iterations = props.lumiBlurIters;
       const totalIterations = iterations * 2;
       for (let i = 0; i < totalIterations; i++) {
-        const radius = remap(Math.floor(i / 2), 0, iterations - 1, props.unsharpBlurRadius, 0);
+        const radius = remap(Math.floor(i / 2), 0, iterations - 1, props.lumiBlurRadius, 0);
+        blurMaterialRef.current.uBaseColor = readTexture.current.texture;
+        blurMaterialRef.current.uDirection.set(i % 2 === 0 ? radius : 0, i % 2 === 0 ? 0 : radius);
+        gl.setRenderTarget(writeTexture.current);
+        gl.render(scene.current, camera.current);
+
+        swap = writeTexture;
+        writeTexture = readTexture;
+        readTexture = swap;
+      }
+    }
+
+    // RENDER GRADIENT
+    const renderGradient = true;
+    if (renderGradient) {
+      planeRef.current.material = gradientMaterialRef.current;
+      gradientMaterialRef.current.uBaseColor = readTexture.current.texture;
+      gradientMaterialRef.current.uResolution.set(
+        props.baseColor.image.width,
+        props.baseColor.image.height
+      );
+      gl.setRenderTarget(writeTexture.current);
+      gl.render(scene.current, camera.current);
+
+      swap = writeTexture;
+      writeTexture = readTexture;
+      readTexture = swap;
+    }
+
+    // BLUR TENSOR
+    const blurTensor = true;
+    if (blurTensor) {
+      planeRef.current.material = blurMaterialRef.current;
+      blurMaterialRef.current.uResolution.set(
+        props.baseColor.image.width,
+        props.baseColor.image.height
+      );
+      blurMaterialRef.current.uFlip = true;
+
+      const iterations = props.tensorBlurIters;
+      const totalIterations = iterations * 2;
+      for (let i = 0; i < totalIterations; i++) {
+        const radius = remap(Math.floor(i / 2), 0, iterations - 1, props.tensorBlurRadius, 0);
 
         blurMaterialRef.current.uBaseColor = readTexture.current.texture;
         blurMaterialRef.current.uDirection.set(i % 2 === 0 ? radius : 0, i % 2 === 0 ? 0 : radius);
@@ -112,12 +153,11 @@ const RenderSharpness = (props: RenderSharpnessProps) => {
       }
     }
 
-    // RENDER HIGH FREQ
-    const renderHighFreq = true;
-    if (renderHighFreq) {
-      planeRef.current.material = highFreqMaterialRef.current;
-      highFreqMaterialRef.current.uBlurred = readTexture.current.texture;
-      highFreqMaterialRef.current.uLuminance = rt2.current.texture;
+    // ANGLES FROM EIGEN
+    const angles = true;
+    if (angles) {
+      planeRef.current.material = eigenMaterialRef.current;
+      eigenMaterialRef.current.uBaseColor = readTexture.current.texture;
 
       gl.setRenderTarget(writeTexture.current);
       gl.render(scene.current, camera.current);
@@ -127,39 +167,14 @@ const RenderSharpness = (props: RenderSharpnessProps) => {
       readTexture = swap;
     }
 
-    // RENDER GAUSSIAN BLUR #2
-    const renderGaussian2 = true;
-    if (renderGaussian2) {
-      planeRef.current.material = blurMaterialRef.current;
-      blurMaterialRef.current.uResolution.set(
-        props.baseColor.image.width,
-        props.baseColor.image.height
-      );
-      blurMaterialRef.current.uFlip = true;
-
-      const iterations = props.highFreqBlurIters;
-      const totalIterations = iterations * 2;
-      for (let i = 0; i < totalIterations; i++) {
-        const radius = remap(Math.floor(i / 2), 0, iterations - 1, props.highFreqBlurRadius, 0);
-
-        blurMaterialRef.current.uBaseColor = readTexture.current.texture;
-        blurMaterialRef.current.uDirection.set(i % 2 === 0 ? radius : 0, i % 2 === 0 ? 0 : radius);
-        gl.setRenderTarget(writeTexture.current);
-        gl.render(scene.current, camera.current);
-
-        swap = writeTexture;
-        writeTexture = readTexture;
-        readTexture = swap;
-      }
-    }
-    props.setSharpnessTexture(readTexture.current.texture);
+    props.setOrientationTexture(readTexture.current.texture);
     gl.setRenderTarget(null);
   }, [
     props.baseColor,
-    props.highFreqBlurIters,
-    props.highFreqBlurRadius,
-    props.unsharpBlurIters,
-    props.unsharpBlurRadius,
+    props.lumiBlurIters,
+    props.lumiBlurRadius,
+    props.tensorBlurIters,
+    props.tensorBlurRadius,
   ]);
 
   return (
@@ -167,9 +182,10 @@ const RenderSharpness = (props: RenderSharpnessProps) => {
       {createPortal(<Plane args={[2, 2]} ref={planeRef}></Plane>, scene.current)}
       <blurMaterial ref={blurMaterialRef} />
       <luminanceMaterial ref={luminanceMaterialRef} />
-      <highFreqMaterial ref={highFreqMaterialRef} />
+      <gradientMaterial ref={gradientMaterialRef} />
+      <eigenMaterial ref={eigenMaterialRef} />
     </>
   );
 };
 
-export default RenderSharpness;
+export default RenderOrientation;

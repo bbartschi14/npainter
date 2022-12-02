@@ -41,6 +41,7 @@ type SliderInputProps = {
   setValue: React.Dispatch<React.SetStateAction<number>>;
   label: string;
   placeholder?: string;
+  precision?: number;
   step: number;
   min: number;
   max: number;
@@ -56,6 +57,7 @@ export function SliderInput(props: SliderInputProps) {
         onChange={props.setValue}
         label={props.label}
         placeholder={props.placeholder}
+        precision={props.precision}
         step={props.step}
         min={props.min}
         max={props.max}
