@@ -27,10 +27,6 @@ const Info = () => {
         <ScrollArea sx={(theme) => ({ height: "calc(100% - 48px - 48px)" })}>
           <Stack>
             <Group>
-              {/* <Image
-                src={minipainting}
-                style={{ width: "48px", height: "48px", borderRadius: "24px" }}
-              /> */}
               <Avatar src={minipainting} radius="xl" size={"lg"} style={{ opacity: 0.75 }} />
               <Title underline>npainter</Title>
             </Group>
@@ -65,12 +61,21 @@ const Info = () => {
                 </Group>
                 <List sx={(theme) => ({ padding: "0px 24px 0px 12px" })}>
                   <List.Item>
-                    When changing "base" layer properties, the base strokes get rendered on top of
-                    the "detail" strokes. Updating a "detail" layer property will re-render it
-                    correctly.
+                    "Orient" texture shader producing suboptimal rotations compared to C++ version.
+                    Try lower resolution input images for smoother results.
                   </List.Item>
                   <List.Item>
-                    "Orient" texture shader producing suboptimal rotations compared to C++ version.
+                    Large input images (~4k) may crash website on mobile devices. Try scaling down
+                    the image before uploading, then save out painting with a larger output scale if
+                    needed.
+                  </List.Item>
+                  <List.Item>
+                    <s>
+                      When changing "base" layer properties, the base strokes get rendered on top of
+                      the "detail" strokes. Updating a "detail" layer property will re-render it
+                      correctly.
+                    </s>
+                    <b>{`(Fixed 12/12/2022)`}</b>
                   </List.Item>
                 </List>
               </Stack>

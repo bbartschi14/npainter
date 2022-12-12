@@ -17,6 +17,7 @@ type StrokeParticlesProps = {
   colorMap: THREE.Texture;
   orientationMap: THREE.Texture;
   importanceMap?: THREE.Texture;
+  zOffset: number;
 };
 
 const tempObject = new THREE.Object3D();
@@ -135,6 +136,7 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
   const [colorUVArray, randomArray] = useMemo(() => {
     setLoading(true);
     const getSeededRandom = rng(props.randomSeed.toString());
+    const getSeededRandom2 = rng(props.randomSeed.toString());
 
     return [
       Float32Array.from(
@@ -146,7 +148,7 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
       Float32Array.from(
         Array.from(
           { length: Math.max(props.particleCount, 0) },
-          (value, index) => getSeededRandom() + 0.5 // Remap [0,1]
+          (value, index) => getSeededRandom2() + 0.5 // Remap [0,1]
         )
       ),
     ];
@@ -182,16 +184,15 @@ const StrokeParticles = (props: StrokeParticlesProps) => {
         args={[null, null, Math.max(props.particleCount, 0)]}
         ref={meshRef}
         visible={!loading}
+        position={[0, 0, props.zOffset]}
       >
         <planeGeometry args={[0.1, 0.1]}>
           <instancedBufferAttribute attach="attributes-colorUv" args={[colorUVArray, 2]} />
           <instancedBufferAttribute attach="attributes-randomFactor" args={[randomArray, 1]} />
         </planeGeometry>
-        {/* With depthTest off, we don't have to worry about z-fighting. Will have to consider render order */}
         <meshBasicMaterial
           alphaMap={texture}
           transparent={true}
-          depthTest={true}
           onBeforeCompile={(shader) => onBeforeCompile(shader)}
         />
       </instancedMesh>

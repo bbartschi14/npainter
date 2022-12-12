@@ -149,6 +149,7 @@ const Painter3D = (props: Painter3DProps) => {
         colorNoise={props.strokeColorNoise}
         colorMap={texture}
         orientationMap={orientationTexture}
+        zOffset={0.05}
       />
       <StrokeParticles
         imageWorldSize={worldSpaceDimensions}
@@ -160,6 +161,7 @@ const Painter3D = (props: Painter3DProps) => {
         colorMap={texture}
         importanceMap={sharpnessTexture}
         orientationMap={orientationTexture}
+        zOffset={0.1}
       />
       <Plane
         args={[worldSpaceDimensions.width, worldSpaceDimensions.height]}

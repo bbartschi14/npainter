@@ -43,7 +43,7 @@ const Painter = () => {
   const imageURL = useMemo(() => {
     if (imageFile.length > 0) {
       console.log(imageFile);
-      return URL.createObjectURL(imageFile[0]);
+      return URL.createObjectURL(imageFile[0] as Blob);
     } else {
       return null;
     }
