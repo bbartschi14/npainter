@@ -33,21 +33,21 @@ import api from "./api.js";
 import auth from "./auth.js";
 
 // Server configuration below
-const isMongoSetupComplete = true;
-if (isMongoSetupComplete) {
-  const mongoConnectionURL = process.env.ATLAS_SRV;
-  const databaseName = "bartschi-budget";
+// const isMongoSetupComplete = true;
+// if (isMongoSetupComplete) {
+//   const mongoConnectionURL = process.env.ATLAS_SRV;
+//   const databaseName = "bartschi-budget";
 
-  // connect to mongodb
-  mongoose
-    .connect(mongoConnectionURL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      dbName: databaseName,
-    })
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => console.log(`Error connecting to MongoDB: ${err}`));
-}
+//   // connect to mongodb
+//   mongoose
+//     .connect(mongoConnectionURL, {
+//       useNewUrlParser: true,
+//       useUnifiedTopology: true,
+//       dbName: databaseName,
+//     })
+//     .then(() => console.log("Connected to MongoDB"))
+//     .catch((err) => console.log(`Error connecting to MongoDB: ${err}`));
+// }
 
 // create a new express server
 const app = express();
@@ -101,7 +101,7 @@ app.use((err, req, res, next) => {
 
 // hardcode port to 3000 for now
 const port = process.env.PORT || 3000;
-const server = http.Server(app);
+const server = http.createServer(app);
 
 server.listen(port, () => {
   console.log(`Server running on port: ${port}`);
