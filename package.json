@@ -7,7 +7,7 @@
   "scripts": {
     "hotloader": "webpack serve --config ./webpack.config.js --mode development --port 5000",
     "build": "webpack",
-    "start": "node",
+    "start": "nodemon",
     "devStart": "ts-node-esm server/src/server.ts",
     "postinstall": "tsc -p ./server"
   },
