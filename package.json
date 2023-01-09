@@ -7,7 +7,7 @@
   "scripts": {
     "hotloader": "webpack serve --config ./webpack.config.js --mode development --port 5000",
     "build": "webpack",
-    "start": "nodemon",
+    "start": "node server/dist/server.js",
     "devStart": "ts-node-esm server/src/server.ts",
     "postinstall": "tsc -p ./server"
   },
@@ -54,7 +54,6 @@
     "mantine-datatable": "^1.7.7",
     "mongoose": "6.7",
     "node": "^18.12.1",
-    "nodemon": "^2.0.20",
     "react-chartjs-2": "^4.3.1",
     "react-router-dom": "^6.4.2",
     "socket.io": "^2.3.0",
