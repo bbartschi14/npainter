@@ -6,6 +6,7 @@ import { useImageSize } from "../modules/image/useImageSize";
 import Painter3D from "../modules/painter/Painter3D";
 import Info from "../modules/common/Info";
 import ControlsDisplay from "../modules/painter/ControlsDisplay";
+import TestAPI from "../modules/common/TestAPI";
 
 /**
  * Main painter app
@@ -61,6 +62,7 @@ const Painter = () => {
 
   return (
     <>
+      <TestAPI />
       <Canvas orthographic={true} camera={{ zoom: 120 }}>
         {imageURL !== null ? (
           <Painter3D

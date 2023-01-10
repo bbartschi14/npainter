@@ -8,7 +8,11 @@
     "jsx": "react-jsx",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".", // this must be specified if "paths" is specified.
+    "paths": {
+      "shared": ["../shared"] // this mapping is relative to "baseUrl"
+    }
   },
   "include": [
     "./src/",

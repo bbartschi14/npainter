@@ -13,8 +13,29 @@ import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
 
+import {
+  RequestDataType,
+  ResponseDataType,
+  TypedGetRequest,
+  TypedResponse,
+  AsParsedQs,
+} from "shared";
+
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();
+
+router.get(
+  "/data",
+  (req: TypedGetRequest<AsParsedQs<RequestDataType>>, res: TypedResponse<ResponseDataType>) => {
+    const testData: ResponseDataType = {
+      name: "Test",
+      description: "random API data",
+      amount: 0,
+    };
+    testData.amount = parseInt(req.query.amount) * 2;
+    res.send(testData);
+  }
+);
 
 // MongoDB Models
 

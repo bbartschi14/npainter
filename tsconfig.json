@@ -7,18 +7,7 @@
     "jsx": "react-jsx",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "esModuleInterop": true
   },
 }
-
-// {
-//   "compilerOptions": {
-//     "paths": {
-//       "~shared/*": ["../shared/*"]
-//     },
-//     "rootDirs": [
-//       "./src",
-//       "../shared"
-//     ]
-//   }
-// }
