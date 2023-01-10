@@ -9,6 +9,7 @@
  */
 
 import { MantineTheme } from "@mantine/core";
+import { GetRequests } from "shared";
 
 // ex: formatParams({ some_key: "some_value", a: "b"}) => "some_key=some_value&a=b"
 function formatParams(params) {
@@ -39,11 +40,11 @@ function convertToJSON(res) {
 
 // Helper code to make a get request. Default parameter of empty JSON Object for params.
 // Returns a Promise to a JSON Object.
-export function get<RequestType, ResponseType>(
-  endpoint,
-  params: RequestType
-): Promise<ResponseType> {
-  const fullPath = endpoint + "?" + formatParams(params);
+export function get<Get extends keyof GetRequests>(
+  endpoint: Get,
+  params: GetRequests[Get]["req"]
+): Promise<GetRequests[Get]["res"]> {
+  const fullPath = "api" + endpoint + "?" + formatParams(params);
   return fetch(fullPath)
     .then(convertToJSON)
     .catch((error) => {

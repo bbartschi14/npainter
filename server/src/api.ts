@@ -19,23 +19,31 @@ import {
   TypedGetRequest,
   TypedResponse,
   AsParsedQs,
+  GetRequests,
 } from "shared";
 
 // api endpoints: all these paths will be prefixed with "/api/"
 const router = express.Router();
 
-router.get(
-  "/data",
-  (req: TypedGetRequest<AsParsedQs<RequestDataType>>, res: TypedResponse<ResponseDataType>) => {
-    const testData: ResponseDataType = {
-      name: "Test",
-      description: "random API data",
-      amount: 0,
-    };
-    testData.amount = parseInt(req.query.amount) * 2;
-    res.send(testData);
-  }
-);
+function declareGet<Get extends keyof GetRequests>(
+  endpoint: Get,
+  handler: (
+    req: TypedGetRequest<AsParsedQs<GetRequests[Get]["req"]>>,
+    res: TypedResponse<GetRequests[Get]["res"]>
+  ) => void
+) {
+  router.get(endpoint, handler);
+}
+
+declareGet("/data", (req, res) => {
+  const testData: ResponseDataType = {
+    name: "Test",
+    description: "random API data",
+    amount: 0,
+  };
+  testData.amount = parseInt(req.query.amount) * 2;
+  res.send(testData);
+});
 
 // MongoDB Models
 

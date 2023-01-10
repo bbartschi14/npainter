@@ -8,8 +8,35 @@ export type RequestDataType = {
   amount: number;
 };
 
+// export type SpecificResponseDataType = {
+//   specific: string;
+// };
+
+// export type SpecificRequestDataType = {
+//   specificAmount: number;
+// };
+
 import { Send, Query } from "express-serve-static-core";
 import { Request, Response } from "express";
+
+// export const getRequests = {
+//   "/data": {
+//     req: { amount: 0 } as RequestDataType,
+//     res: {
+//       name: "",
+//       description: "",
+//       amount: 0,
+//     } as ResponseDataType,
+//   },
+//   "/data/specific": { req: { specific: "" }, res: { specific: 0 } },
+// };
+
+// type GetRequests = typeof getRequests;
+
+type GetRequests = {
+  "/data": { req: RequestDataType; res: ResponseDataType };
+  "/data/specific": { req: SpecificRequestDataType; res: SpecificResponseDataType };
+};
 
 export interface TypedPostRequest<T> extends Request {
   body: T;
